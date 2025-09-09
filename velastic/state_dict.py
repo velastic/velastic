@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-import bytecheckpoint as bcp
 import os
 
 import torch.distributed.checkpoint as dcp
@@ -40,6 +39,7 @@ class BCPState(BaseState):
         return sd
 
     def save(self, ckpt_path=None, sync=True):
+        import bytecheckpoint as bcp
         sd = self.state_dict()
         if ckpt_path is None:
                 ckpt_path = self.default_ckpt_path
@@ -51,6 +51,7 @@ class BCPState(BaseState):
         )
 
     def load(self, ckpt_path):
+        import bytecheckpoint as bcp
         sd = self.state_dict()
         bcp.load(
             ckpt_path,

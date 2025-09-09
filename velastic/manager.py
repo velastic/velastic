@@ -4,13 +4,8 @@ import os
 import shutil
 import time
 import pickle
-from collections.abc import Iterator
-from contextlib import contextmanager
-import numpy as np
 
 import torch.distributed as dist
-
-from .state_dict import BaseState
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +23,7 @@ class IterManager:
         save_ckpt_time: float = 0,
         use_torch_compile: bool = False,
         predict_freq: int = 5,
-        velastic_dir: str = ".velastic",
+        velastic_dir: str = None,
     ):
         self.total_iters = total_iters
         self.redundant_time = max(redundant_time, 0.0)
@@ -39,9 +34,16 @@ class IterManager:
         self.iter_times = []
         self.start_time = None
         self.iter_count = 0
-        
+
         # Directory and state file for Velastic
-        self.velastic_dir = velastic_dir
+        if velastic_dir:
+            self.velastic_dir = velastic_dir
+        elif os.environ.get("MLP_TASK_VELASTIC_STATE_DIR"):
+            self.velastic_dir = os.environ.get("MLP_TASK_VELASTIC_STATE_DIR")
+        else:
+            self.velastic_dir = ".velastic"
+
+        os.makedirs(self.velastic_dir, exist_ok=True)
         self.velastic_state_path = os.path.join(self.velastic_dir, _VELASTIC_STATE_FILENAME)
         self.velastic_bin_path = os.path.join(self.velastic_dir, _VELASTIC_BIN_FILENAME)
 
