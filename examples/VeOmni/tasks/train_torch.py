@@ -223,6 +223,7 @@ def main():
     logger.info(
         f"rank{args.train.local_rank} Start training, train_steps: {args.train.train_steps}, epochs: {args.train.num_train_epochs}"
     )
+    iter_mngr = IterManager(velastic_dir="./checkpoints/.velastic")
     for epoch in range(start_epoch, args.train.num_train_epochs):
         if hasattr(train_dataloader, "set_epoch"):
             train_dataloader.set_epoch(epoch)
@@ -251,6 +252,7 @@ def main():
             torch.cuda.synchronize()
             start_time = time.time()
             for micro_batch in micro_batches:
+                iter_mngr.iter()
                 environ_meter.add(micro_batch)
 
                 micro_batch = {
@@ -298,7 +300,7 @@ def main():
                     if global_step == args.train.profile_end_step:
                         profiler.stop()
 
-            if args.train.save_steps and global_step % args.train.save_steps == 0:
+            if iter_mngr.should_save_ckpt() or (args.train.save_steps and global_step % args.train.save_steps == 0):
                 helper.empty_cache()
                 save_checkpoint_path = os.path.join(args.train.save_checkpoint_path, f"global_step_{global_step}")
                 state = {
