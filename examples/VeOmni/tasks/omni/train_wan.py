@@ -283,7 +283,7 @@ def main():
 
     flow_scheduler.set_timesteps(1000, training=True)
 
-    iter_mngr = IterManager(velastic_dir="./checkpoints/.velastic")
+    iter_mngr = IterManager()
     for epoch in range(start_epoch, args.train.num_train_epochs):
         if hasattr(train_dataloader, "set_epoch"):
             train_dataloader.set_epoch(epoch)
